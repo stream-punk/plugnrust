@@ -323,9 +323,8 @@ declare_array!(
 pub fn print(message: &str) {
     let cstr = CString::new(message).unwrap();
     unsafe {
-        match HOST_PRINT {
-            Some(host_print) => host_print(HOST, cstr.as_ptr()),
-            None => return,
+        if let Some(host_print) = HOST_PRINT {
+            host_print(HOST, cstr.as_ptr());
         }
     }
 }
@@ -356,7 +355,7 @@ pub unsafe extern "C" fn process_block(data: *mut BlockData) {
     static mut V: f64 = 0.0;
     for i in 0..(*data).samples_to_process {
         V += 440.0 / 44100.0;
-        V = V % 1.0;
+        V %= 1.0;
         for ch in 0..AUDIO_OUTPUTS_COUNT {
             *(*(*data).samples.offset(ch as _)).offset(i as _) = V - 0.5;
             *(*(*data).samples.offset(ch as _)).offset(i as _) = V - 0.5;
