@@ -1,6 +1,7 @@
 use std::ffi::c_void;
 use std::ffi::CString;
 use std::ptr::{null, null_mut};
+use std::slice;
 
 pub type CBool = i8;
 const CTRUE: i8 = 1;
@@ -351,14 +352,23 @@ pub unsafe extern "C" fn get_latency() -> i32 {
 pub unsafe extern "C" fn update_input_parameters() {}
 
 #[export_name = "processBlock"]
-pub unsafe extern "C" fn process_block(data: *mut BlockData) {
+pub unsafe extern "C" fn _process_block(data: *mut BlockData) {
     static mut V: f64 = 0.0;
-    for i in 0..(*data).samples_to_process {
-        V += 440.0 / 44100.0;
-        V %= 1.0;
-        for ch in 0..AUDIO_OUTPUTS_COUNT {
-            *(*(*data).samples.offset(ch as _)).offset(i as _) = V - 0.5;
-            *(*(*data).samples.offset(ch as _)).offset(i as _) = V - 0.5;
+    let nsamples = (*data).samples_to_process as usize;
+    let mut samples: Vec<&mut [f64]> = Vec::new();
+    for ch in 0..AUDIO_OUTPUTS_COUNT {
+        let s = slice::from_raw_parts_mut(*(*data).samples.offset(ch as _), nsamples);
+        samples.push(s);
+    }
+    process_block(&mut samples, &mut V, AUDIO_OUTPUTS_COUNT as usize, nsamples);
+}
+
+fn process_block(samples: &mut Vec<&mut [f64]>, v: &mut f64, channels: usize, nsamples: usize) {
+    for i in 0..nsamples {
+        *v += 440.0 / 44100.0;
+        *v %= 1.0;
+        for ch in 0..channels {
+            samples[ch][i] = *v;
         }
     }
 }
