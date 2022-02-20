@@ -398,4 +398,24 @@ mod tests {
         assert_eq!(size_of::<CIntArray>(), 16);
         assert_eq!(size_of::<CStringArray>(), 16);
     }
+
+    #[test]
+    fn test_process() {
+        unsafe { AUDIO_OUTPUTS_COUNT = 2 };
+        let mut samples1: [f64; 16] = [0.0; 16];
+        let mut samples2: [f64; 16] = [0.0; 16];
+        let mut s = [samples1.as_mut_ptr(), samples2.as_mut_ptr()];
+        let mut block = BlockData {
+            samples: s.as_mut_ptr(),
+            samples_to_process: 16,
+            input_midi_events: null(),
+            output_midi_events: null_mut(),
+            begin_param_values: null(),
+            end_param_values: null(),
+            transport: null(),
+        };
+        unsafe {
+            _process_block(&mut block);
+        }
+    }
 }

@@ -24,4 +24,13 @@ Rust cannot create macOS shared-libraries for `dlopen` (bundles). The official w
 to create bundles is to create a static-library and link it with `clang`. As I
 do in the Makefile.
 
+The makefile builds a universal (x86_64 and arm64) binary. add the other target
+with:
+
+`rustup target add x86_64-apple-darwin`
+
+or
+
+`rustup target add aarch64-apple-darwin`
+
 I will look into Windows, once my project is past alpha.
